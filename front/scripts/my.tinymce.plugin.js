@@ -1,3 +1,4 @@
+import { filterByParam } from './utils';
 import settings from '../settings';
 
 export default (name) => tinymce.PluginManager.add(name, function (editor) {
@@ -45,13 +46,63 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
       ],
 
       onAction: function (_, details) {
-        const userId =  usersButtons.find(user => user.name === details.name).value;
+        const userId = usersButtons.find(user => user.name === details.name).value;
         editor.insertContent(`<span><a href="user/${userId}"> @${details.name}</a> </span>`);
+      },
+
+      onChange: function (api) {
+        const data = api.getData().search;
+
+        const filteredUsers = filterByParam(usersButtons, data);
+
+        if (filteredUsers.length > 0) {
+
+          api.redial({
+            ...dialogConfig,
+            initialData: {
+              'search': api.getData().search,
+            },
+            body: {
+              type: 'panel',
+              items: [
+                {
+                  type: 'input',
+                  name: 'search',
+                  label: 'Поиск',
+                },
+                ...filteredUsers,
+              ],
+            },
+          });
+        } else {
+          api.redial({
+            ...dialogConfig,
+            initialData: {
+              'search': api.getData().search,
+            },
+            body: {
+              type: 'panel',
+              items: [
+                {
+                  type: 'input',
+                  name: 'search',
+                  label: 'Поиск',
+                },
+                {
+                  type: 'alertbanner',
+                  level: 'error',
+                  text: 'Такого пользователя не существует',
+                  icon: 'notice'
+                },
+              ],
+            },
+          })
+        }
       },
 
       onSubmit: function (api) {
         const data = api.getData().search;
-        const filteredUsers = usersButtons.filter(user => user.name.toLowerCase().indexOf(data) === 0);
+        const filteredUsers = filterByParam(usersButtons, data);
 
         if (filteredUsers.length > 0) {
 
