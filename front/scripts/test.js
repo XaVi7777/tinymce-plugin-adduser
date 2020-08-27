@@ -1,11 +1,21 @@
-import settings from '../settings';
+const createDialogConfig = users => {
 
-export default (name) => tinymce.PluginManager.add(name, function (editor) {
-
-  const createDialogConfig = users => {
+    const usersButtons = users.slice(0, 20).map(user => {
+      return {
+        type: 'button',
+        name: user.name,
+        value: user._id,
+        text: user.name,
+        borderless: true,
+      }
+    });
 
     const dialogConfig = {
-      title: 'Поиск пользователей',
+      title: 'Выберите пользователей',
+      initialData: {
+        'search': '',
+        'users': usersButtons,
+      },
       body: {
         type: 'panel',
         items: [
@@ -14,6 +24,7 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
             name: 'search',
             label: 'Поиск',
           },
+          ...usersButtons,
         ],
       },
 
@@ -29,28 +40,16 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
       ],
 
       onAction: function (_, details) {
-        editor.insertContent(`<span><a href="user/"> @${details.name}</a> </span>`);
+        const userId = usersButtons.find(user => user.name === details.name).value;
+        editor.insertContent(`<span><a href="user/${userId}"> @${details.name}</a> </span>`);
       },
 
-      onSubmit: async api => {
+      onSubmit: async function (api) {
         const data = api.getData().search;
-        api.setData({
-          search: data,
-        });
-        const response = await fetch(settings.API_URL + '/' + data);
-        const { users } = await response.json();
+        const filteredUsers = filterByParam(usersButtons, data);
 
-        const usersButtons = users.map(user => {
-          return {
-            type: 'button',
-            name: user.name,
-            value: user._id,
-            text: user.name,
-            borderless: true,
-          }
-        });
+        if (filteredUsers.length > 0) {
 
-        if (usersButtons.length > 0) {
           api.redial({
             ...dialogConfig,
             body: {
@@ -61,11 +60,8 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
                   name: 'search',
                   label: 'Поиск',
                 },
-                ...usersButtons,
+                ...filteredUsers,
               ],
-              initialData: {
-                'search': data,
-              },
             },
           });
         } else {
@@ -89,16 +85,22 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
             },
           })
         }
-      },
+      }
     }
     return dialogConfig;
   }
 
-  editor.ui.registry.addButton('example', {
-    icon: 'user',
+  const openDialog = async function () {
+    const response = await fetch(settings.API_URL);
+    const { users } = await response.json();
+ 
+    editor.windowManager.open(createDialogConfig(users));
+  };
 
-    onAction: function () {
-      editor.windowManager.open(createDialogConfig())
+  return {
+    getMetadata: function () {
+      return {
+        name,
+      };
     }
-  });
-});
+  };

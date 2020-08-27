@@ -3,6 +3,6 @@ import auctocompleter from '../scripts/autocompleter.tiny';
 import "regenerator-runtime/runtime.js";
 import init from '../scripts/tinymce.init';
 
-// plugin('example');
-auctocompleter('example');
+plugin('example');
+auctocompleter('auctocompleter');
 init();
