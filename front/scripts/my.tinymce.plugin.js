@@ -1,8 +1,8 @@
 import settings from '../settings';
 
-export default (name) => tinymce.PluginManager.add(name, function (editor) {
+export default (name) => tinymce.PluginManager.add(name, editor => {
 
-  const createDialogConfig = users => {
+  const createDialogConfig = () => {
 
     const dialogConfig = {
       title: 'Поиск пользователей',
@@ -28,7 +28,7 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
         },
       ],
 
-      onAction: function (_, details) {
+      onAction: (_, details) => {
         editor.insertContent(`<span><a href="user/"> @${details.name}</a> </span>`);
       },
 
@@ -97,7 +97,7 @@ export default (name) => tinymce.PluginManager.add(name, function (editor) {
   editor.ui.registry.addButton('example', {
     icon: 'user',
 
-    onAction: function () {
+    onAction: () => {
       editor.windowManager.open(createDialogConfig())
     }
   });

@@ -2,7 +2,7 @@ import "regenerator-runtime/runtime.js";
 import settings from '../settings';
 import { filterByParam } from './utils';
 
-export default (name) => tinymce.PluginManager.add(name, async function (editor) {
+export default (name) => tinymce.PluginManager.add(name, async editor => {
 
     const response = await fetch(settings.API_URL);
     const { users } = await response.json();
@@ -12,7 +12,7 @@ export default (name) => tinymce.PluginManager.add(name, async function (editor)
         minChars: 1,
         columns: 1,
         maxResults: 10,
-        fetch: async function (pattern, maxResults) {
+        fetch: async (pattern, maxResults) => {
 
             const matchedUsers = filterByParam(users, pattern.toLowerCase()).slice(0, maxResults);
 
@@ -26,7 +26,7 @@ export default (name) => tinymce.PluginManager.add(name, async function (editor)
                 resolve(results);
             });
         },
-        onAction: function (autocompleteApi, rng, value) {
+        onAction: (autocompleteApi, rng, value) => {
             editor.selection.setRng(rng);
             editor.insertContent(value);
             autocompleteApi.hide();
@@ -34,7 +34,7 @@ export default (name) => tinymce.PluginManager.add(name, async function (editor)
     });
 
     return {
-        getMetadata: function () {
+        getMetadata: () => {
             return {
                 name,
             };
