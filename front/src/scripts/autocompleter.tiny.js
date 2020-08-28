@@ -1,5 +1,5 @@
 import "regenerator-runtime/runtime.js";
-import settings from '../settings';
+import settings from '../../settings';
 import { filterByParam } from './utils';
 
 export default (name) => tinymce.PluginManager.add(name, async editor => {
